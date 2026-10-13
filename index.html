@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RepCord</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <script src="theme.js"></script>
+  <script>
+    // if this browser was logged in last time, keep the landing page hidden until Firebase confirms it
+    try { if (localStorage.getItem("repcord-session") === "1") document.documentElement.classList.add("returning"); } catch (e) {}
+  </script>
+</head>
+<body>
+
+  <!-- ICONS (used all over the site with <svg class="ic"><use href="#i-name"/></svg>) -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <symbol id="i-home" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></symbol>
+    <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></symbol>
+    <symbol id="i-dumbbell" viewBox="0 0 24 24"><path d="M6.5 6.5v11M17.5 6.5v11M3 9.5v5M21 9.5v5M6.5 12h11"/></symbol>
+    <symbol id="i-user" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></symbol>
+    <symbol id="i-logout" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></symbol>
+    <symbol id="i-palette" viewBox="0 0 24 24"><circle cx="13.5" cy="6.5" r=".5"/><circle cx="17.5" cy="10.5" r=".5"/><circle cx="8.5" cy="7.5" r=".5"/><circle cx="6.5" cy="12.5" r=".5"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/></symbol>
+    <symbol id="i-trend" viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></symbol>
+    <symbol id="i-flame" viewBox="0 0 24 24"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></symbol>
+    <symbol id="i-trophy" viewBox="0 0 24 24"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2z"/></symbol>
+    <symbol id="i-zap" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></symbol>
+    <symbol id="i-edit" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></symbol>
+    <symbol id="i-trash" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></symbol>
+    <symbol id="i-compass" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></symbol>
+    <symbol id="i-star" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></symbol>
+    <symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></symbol>
+    <symbol id="i-cloud" viewBox="0 0 24 24"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></symbol>
+    <symbol id="i-cap" viewBox="0 0 24 24"><path d="M22 10 12 5 2 10l10 5 10-5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></symbol>
+    <symbol id="i-book" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></symbol>
+    <symbol id="i-mail" viewBox="0 0 24 24"><path d="M4 4h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/><polyline points="22,6 12,13 2,6"/></symbol>
+    <symbol id="i-up" viewBox="0 0 24 24"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></symbol>
+            <!-- muscle group icons (used as exercise thumbnails) -->
+    <defs><g id="m-body"><g><g fill="currentColor" stroke="none"><circle cx="24" cy="5.5" r="3.6"/><rect x="22.2" y="8.5" width="3.6" height="3.8"/><path d="M15 12.6Q15 11.5 18 11.5H30Q33 11.5 33 12.6L32.2 22L30.6 30.4H17.4L15.8 22Z"/></g><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M14.4 14.2L10.6 24.5" stroke-width="5"/><path d="M10.6 24.5L8.6 35" stroke-width="4.6"/><path d="M33.6 14.2L37.4 24.5" stroke-width="5"/><path d="M37.4 24.5L39.4 35" stroke-width="4.6"/><path d="M20.4 31L19.8 40" stroke-width="6.8"/><path d="M19.8 40L19.5 46" stroke-width="4.4"/><path d="M27.6 31L28.2 40" stroke-width="6.8"/><path d="M28.2 40L28.5 46" stroke-width="4.4"/></g></g></g></defs>
+    <symbol id="i-m-chest" viewBox="6 2 36 36"><use href="#m-body" opacity=".28"/><g fill="currentColor" stroke="none"><path d="M17 13.2H23.4V21.4Q19.2 23 16.4 19.8Z"/><path d="M31 13.2H24.6V21.4Q28.8 23 31.6 19.8Z"/></g></symbol>
+    <symbol id="i-m-back" viewBox="6 2 36 36"><use href="#m-body" opacity=".28"/><path d="M24 12.5V29.5" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" opacity=".75"/><g fill="currentColor" stroke="none"><path d="M16.8 14.6L22.6 15.6V26L18.4 29L16.2 21.4Z"/><path d="M31.2 14.6L25.4 15.6V26L29.6 29L31.8 21.4Z"/></g></symbol>
+    <symbol id="i-m-shoulders" viewBox="6 2 36 36"><use href="#m-body" opacity=".28"/><g fill="currentColor" stroke="none"><circle cx="13.7" cy="14.8" r="3.5"/><circle cx="34.3" cy="14.8" r="3.5"/></g></symbol>
+    <symbol id="i-m-traps" viewBox="6 2 36 36"><use href="#m-body" opacity=".28"/><path d="M24 12.5V29.5" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" opacity=".75"/><g fill="currentColor" stroke="none"><path d="M24 10.6L18.6 12.2L15.8 14.4L24 20.6L32.2 14.4L29.4 12.2Z"/></g></symbol>
+    <symbol id="i-m-biceps" viewBox="6 4 36 36"><use href="#m-body" opacity=".28"/><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="4.6"><path d="M13.6 17.4L11.8 23" /><path d="M34.4 17.4L36.2 23"/></g></symbol>
+    <symbol id="i-m-triceps" viewBox="6 4 36 36"><use href="#m-body" opacity=".28"/><path d="M24 12.5V29.5" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" opacity=".75"/><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="4.6"><path d="M13.6 17.4L11.8 23" /><path d="M34.4 17.4L36.2 23"/></g></symbol>
+    <symbol id="i-m-forearms" viewBox="6 15 36 36"><use href="#m-body" opacity=".28"/><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="5.4"><path d="M10.8 26.4L9 34.4"/><path d="M37.2 26.4L39 34.4"/></g></symbol>
+    <symbol id="i-m-core" viewBox="9 7 30 30"><use href="#m-body" opacity=".28"/><g fill="currentColor" stroke="none"><rect x="19.8" y="14.6" width="3.9" height="3.9" rx="1.2"/><rect x="24.3" y="14.6" width="3.9" height="3.9" rx="1.2"/><rect x="19.8" y="19.6" width="3.9" height="3.9" rx="1.2"/><rect x="24.3" y="19.6" width="3.9" height="3.9" rx="1.2"/><rect x="19.8" y="24.6" width="3.9" height="3.9" rx="1.2"/><rect x="24.3" y="24.6" width="3.9" height="3.9" rx="1.2"/></g></symbol>
+    <symbol id="i-m-glutes" viewBox="8 18 32 32"><use href="#m-body" opacity=".28"/><path d="M24 12.5V30" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" opacity=".75"/><g fill="currentColor" stroke="none"><ellipse cx="20.6" cy="32.6" rx="4" ry="3.8"/><ellipse cx="27.4" cy="32.6" rx="4" ry="3.8"/></g></symbol>
+    <symbol id="i-m-quads" viewBox="8 20 32 32"><use href="#m-body" opacity=".28"/><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="5.2"><path d="M20.4 33L19.9 39"/><path d="M27.6 33L28.1 39"/></g></symbol>
+    <symbol id="i-m-hamstrings" viewBox="8 20 32 32"><use href="#m-body" opacity=".28"/><path d="M24 12.5V29.5" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" opacity=".75"/><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="5.2"><path d="M20.4 33L19.9 39"/><path d="M27.6 33L28.1 39"/></g></symbol>
+    <symbol id="i-m-calves" viewBox="10 25 28 28"><use href="#m-body" opacity=".28"/><path d="M24 12.5V29.5" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" opacity=".75"/><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="3.6"><path d="M19.8 41.4L19.6 45.4"/><path d="M28.2 41.4L28.4 45.4"/></g></symbol>
+    <symbol id="i-m-full-body" viewBox="0 0 48 48"><use href="#m-body" opacity="1"/></symbol>
+    <symbol id="i-m-cardio" viewBox="0 0 48 48"><path d="M24 41C9 31 5.5 21.5 11 15.2C15.4 10.4 21.4 12.4 24 16.6C26.6 12.4 32.6 10.4 37 15.2C42.5 21.5 39 31 24 41Z" fill="currentColor" stroke="none" opacity=".28"/><path d="M6 25.5H16L19.6 18L24.4 32L28 23L30 25.5H42" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  </svg>
+
+  <nav>
+    <h1>
+      <svg class="logo-mark" viewBox="0 0 24 24" aria-hidden="true">
+        <rect x="2" y="2" width="6" height="6" rx="1.5" fill="#0e4429"/>
+        <rect x="9" y="2" width="6" height="6" rx="1.5" fill="#26a641"/>
+        <rect x="16" y="2" width="6" height="6" rx="1.5" fill="#0e4429"/>
+        <rect x="2" y="9" width="6" height="6" rx="1.5" fill="#26a641"/>
+        <rect x="9" y="9" width="6" height="6" rx="1.5" fill="#39d353"/>
+        <rect x="16" y="9" width="6" height="6" rx="1.5" fill="#26a641"/>
+        <rect x="2" y="16" width="6" height="6" rx="1.5" fill="#39d353"/>
+        <rect x="9" y="16" width="6" height="6" rx="1.5" fill="#0e4429"/>
+        <rect x="16" y="16" width="6" height="6" rx="1.5" fill="#39d353"/>
+      </svg>
+      <span class="logo-text">RepCord</span>
+    </h1>
+    <div class="nav-links">
+      <button data-page="home" class="needs-login" hidden><svg class="ic"><use href="#i-home"/></svg>Home</button>
+      <button data-page="calendar" class="needs-login" hidden><svg class="ic"><use href="#i-calendar"/></svg>Your Calendar</button>
+      <button data-page="workouts" class="needs-login" hidden><svg class="ic"><use href="#i-dumbbell"/></svg>Workouts</button>
+      <button data-page="about" class="guest-only"><svg class="ic"><use href="#i-compass"/></svg>About</button>
+    </div>
+
+    <div id="guestButtons" hidden>
+      <button id="navLogin">Login</button>
+      <button id="navRegister">Sign up</button>
+    </div>
+
+    <div id="profileMenu" hidden>
+      <button id="profileBtn">R</button>
+      <div id="dropdown" hidden>
+        <button id="viewProfile"><svg class="ic"><use href="#i-user"/></svg>My profile</button>
+        <button id="menuLogout"><svg class="ic"><use href="#i-logout"/></svg>Logout</button>
+      </div>
+    </div>
+
+    <!-- FONT PICKER -->
+    <div id="fontPicker">
+      <button id="fontBtn" aria-label="Change font" title="Change font">Aa</button>
+      <div id="fontPanel" hidden>
+        <p class="theme-title">Choose a font</p>
+        <label class="font-all">
+          <input type="checkbox" id="fontAll">
+          <span>Use it for all text, not just titles</span>
+        </label>
+        <div id="fontList"></div>
+      </div>
+    </div>
+
+    <!-- THEME PICKER -->
+    <div id="themePicker">
+      <button id="themeBtn" aria-label="Change theme" title="Change theme"><svg class="ic"><use href="#i-palette"/></svg></button>
+            <div id="themePanel" hidden>
+        <p class="theme-title">Choose a theme</p>
+        <div id="themeRow">
+          <button class="swatch" data-theme="default" title="Default" aria-label="Default theme"
+            style="--sw: linear-gradient(135deg, #161a22 50%, #39d353 50%)"></button>
+          <button class="swatch" data-theme="dark" title="Dark" aria-label="Dark theme"
+            style="--sw: linear-gradient(135deg, #000000 50%, #f5f5f5 50%)"></button>
+          <button class="swatch" data-theme="ocean" title="Ocean" aria-label="Ocean theme"
+            style="--sw: linear-gradient(135deg, #0d1b2d 50%, #38bdf8 50%)"></button>
+          <button class="swatch" data-theme="sunset" title="Sunset" aria-label="Sunset theme"
+            style="--sw: linear-gradient(135deg, #221117 50%, #ff7a45 50%)"></button>
+          <button class="swatch" id="wheelSwatch" title="Pick any color" aria-label="Pick any color"
+            style="--sw: conic-gradient(#ff0000, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff, #ff0000)"></button>
+        </div>
+
+        <div id="colorPicker" hidden>
+          <div id="wheel" aria-label="Color wheel"><div id="wheelThumb"></div></div>
+          <div class="cp-row">
+            <span>Brightness</span>
+            <input type="range" id="brightness" min="30" max="100" value="100" aria-label="Brightness">
+          </div>
+          <div class="cp-row">
+            <span id="cpPreview"></span>
+            <input type="text" id="hexInput" maxlength="7" spellcheck="false" autocomplete="off" value="#39D353" aria-label="Hex color">
+          </div>
+        </div>
+
+        <p id="themeName">Default theme</p>
+      </div>
+    </div>
+  </nav>
+
+  <!-- HOME -->
+  <section id="home" class="page">
+
+    <div id="homeHero">
+      <div>
+        <p id="homeDate"></p>
+        <h2 id="homeGreeting">Home</h2>
+        <p id="welcomeText">Log in to start tracking your workouts.</p>
+      </div>
+      <div id="homeActions" hidden>
+        <div id="todayStatus"></div>
+        <button id="logTodayBtn">+ Log today's workout</button>
+      </div>
+    </div>
+
+    <div id="stats" hidden>
+      <div class="stat">
+        <span class="stat-icon"><svg class="ic"><use href="#i-dumbbell"/></svg></span>
+        <strong id="statWorkouts">0</strong>
+        <small>Workouts logged</small>
+      </div>
+      <div class="stat">
+        <span class="stat-icon"><svg class="ic"><use href="#i-trend"/></svg></span>
+        <strong id="statExercises">0</strong>
+        <small>Exercises tracked</small>
+      </div>
+      <div class="stat">
+        <span class="stat-icon"><svg class="ic"><use href="#i-zap"/></svg></span>
+        <strong id="statFailure">0</strong>
+        <small>Days of failure</small>
+      </div>
+      <div class="stat">
+        <span class="stat-icon"><svg class="ic"><use href="#i-flame"/></svg></span>
+        <strong id="statStreak">0</strong>
+        <small>Current streak (days)</small>
+      </div>
+    </div>
+
+    <div id="homeGrid" hidden>
+      <div class="home-card wide">
+        <div class="card-head">
+          <h3>This week</h3>
+          <span id="weekCount"></span>
+        </div>
+        <div id="weekStrip"></div>
+      </div>
+
+      <div class="home-card">
+        <div class="card-head">
+          <h3>Recent workouts</h3>
+          <button id="viewAllWorkouts" class="link-btn">View all</button>
+        </div>
+        <ul id="recentList" class="home-list"></ul>
+      </div>
+
+      <div class="home-card">
+        <div class="card-head">
+          <h3>Top lifts</h3>
+          <button id="viewProgress" class="link-btn">Track progress</button>
+        </div>
+        <ul id="topLifts" class="home-list"></ul>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- YOUR CALENDAR -->
+  <section id="calendar" class="page">
+
+    <div class="page-head">
+      <div>
+        <h2>Your Calendar</h2>
+        <p class="page-sub">Click any day to log, edit, or delete a workout.</p>
+      </div>
+      <button id="calLogToday"><svg class="ic"><use href="#i-plus"/></svg>Log today</button>
+    </div>
+
+    <div id="streakBar">
+      <div class="chip">
+        <span class="chip-icon"><svg class="ic"><use href="#i-flame"/></svg></span>
+        <div><strong id="streakCurrent">0</strong><small>Current streak (days)</small></div>
+      </div>
+      <div class="chip">
+        <span class="chip-icon"><svg class="ic"><use href="#i-trophy"/></svg></span>
+        <div><strong id="streakLongest">0</strong><small>Longest streak (days)</small></div>
+      </div>
+      <div class="chip">
+        <span class="chip-icon"><svg class="ic"><use href="#i-calendar"/></svg></span>
+        <div><strong id="streakMonth">0</strong><small>Workouts this month</small></div>
+      </div>
+      <div class="chip">
+        <span class="chip-icon"><svg class="ic"><use href="#i-dumbbell"/></svg></span>
+        <div><strong id="streakTotal">0</strong><small>Workouts logged</small></div>
+      </div>
+    </div>
+
+    <div id="calendarCard">
+      <div class="card-head">
+        <h3 id="calendarYear"></h3>
+        <div class="legend cal-legend">
+          <span class="day pv light"></span>Light
+          <span class="day pv moderate"></span>Moderate
+          <span class="day pv failure"></span>Failure
+        </div>
+      </div>
+      <div id="calendarScroll">
+        <div id="calendarInner">
+          <div id="monthRow"></div>
+          <div id="dayLabels"><span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span></div>
+          <div id="grid"></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="logBox" hidden>
+      <div class="log-head">
+        <div>
+          <h3 id="logDate"></h3>
+          <p class="page-sub">What did you train?</p>
+        </div>
+        <button id="cancelLog" class="btn-ghost icon-only" aria-label="Close"><svg class="ic"><use href="#i-x"/></svg></button>
+      </div>
+
+      <div class="field" id="logFolderField">Split
+        <select id="logFolder" aria-label="Split"></select>
+        <button type="button" id="createSplitBtn" class="folder-empty" hidden>
+          <svg class="ic"><use href="#i-plus"/></svg> No splits yet, create one now
+        </button>
+      </div>
+      <div id="logFolderChips" class="chip-row" hidden></div>
+
+      <div class="field">Intensity
+        <div id="intensityPicker" class="segmented">
+          <button type="button" data-value="light">Light</button>
+          <button type="button" data-value="moderate">Moderate</button>
+          <button type="button" data-value="failure">Failure</button>
+        </div>
+      </div>
+      <input type="hidden" id="intensity" value="">
+
+      <div class="log-actions">
+        <button id="saveLog">Save workout</button>
+        <button id="deleteLog" class="btn-danger" hidden>Delete</button>
+      </div>
+      <p id="logError"></p>
+    </div>
+  </section>
+
+  <!-- WORKOUTS -->
+  <section id="workouts" class="page">
+
+    <div class="page-head">
+      <div>
+        <h2>Workouts</h2>
+        <p class="page-sub">Your history and your lifts in one place.</p>
+      </div>
+    </div>
+
+    <div class="tabs">
+      <button class="tab active" data-tab="historyTab">History</button>
+      <button class="tab" data-tab="progressTab">Progress</button>
+      <button class="tab" data-tab="foldersTab">Splits</button>
+    </div>
+
+    <div id="historyTab" class="tab-panel active">
+      <div class="toolbar">
+        <div class="search-wrap">
+          <svg class="ic"><use href="#i-search"/></svg>
+          <input type="text" id="searchBox" placeholder="Search workout name">
+        </div>
+        <div id="intensityFilter" class="segmented">
+          <button type="button" data-value="" class="active">All</button>
+          <button type="button" data-value="light">Light</button>
+          <button type="button" data-value="moderate">Moderate</button>
+          <button type="button" data-value="failure">Failure</button>
+        </div>
+        <input type="hidden" id="filterIntensity" value="">
+      </div>
+
+      <p id="historyCount" class="page-sub"></p>
+      <div id="historyList"></div>
+    </div>
+
+
+        <div id="foldersTab" class="tab-panel">
+      <div class="folders-top">
+        <p class="page-sub">Group your exercises into splits like Push Day or Leg Day, then pick a split on your calendar.</p>
+        <button id="newFolderBtn"><svg class="ic"><use href="#i-plus"/></svg>New split</button>
+      </div>
+      <div id="folderList"></div>
+    </div>
+
+    <div id="folderModal" class="modal" hidden>
+      <div class="modal-card">
+        <div class="modal-head">
+          <h3 id="folderModalTitle">New split</h3>
+          <button id="closeFolder" class="btn-ghost icon-only" aria-label="Close"><svg class="ic"><use href="#i-x"/></svg></button>
+        </div>
+
+        <label class="pf-label" for="folderName">Split name</label>
+        <input type="text" id="folderName" maxlength="24" placeholder="e.g. Push Day">
+
+        <div class="lib-head">
+          <h4>Exercise library</h4>
+          <span id="pickedCount">0 selected</span>
+        </div>
+
+        <div id="pickedChips"></div>
+
+        <div class="search-wrap">
+          <svg class="ic"><use href="#i-search"/></svg>
+          <input type="text" id="libSearch" placeholder="Search exercises">
+        </div>
+        <div id="muscleChips"></div>
+        <div id="libList"></div>
+
+        <div class="custom-row">
+          <input type="text" id="customExercise" maxlength="30" placeholder="Not in the list? Type your own exercise">
+          <button id="addCustom" class="btn-ghost">Add</button>
+        </div>
+
+        <p id="folderError"></p>
+        <div class="modal-actions">
+          <button id="saveFolder">Save split</button>
+          <button id="cancelFolder" class="btn-ghost">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="progressTab" class="tab-panel">
+      <div class="form-card" id="folderLog">
+        <h3>Update from your splits</h3>
+        <select id="flSelect"></select>
+        <p class="hint">Type only what changed. Leave a row empty to skip it.</p>
+        <div id="flRows"></div>
+        <button id="flSave">Save all</button>
+        <p id="flError"></p>
+      </div>
+
+      <h3 class="section-sub">Your exercises</h3>
+      <div id="exerciseList"></div>
+
+      <div id="chartCard">
+        <h3>Progress chart</h3>
+        <select id="chartSelect"></select>
+        <p id="chartSummary"></p>
+        <div id="chartBox"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PROFILE -->
+  <section id="profile" class="page">
+    <div class="page-head">
+      <div>
+        <h2>My Profile</h2>
+        <p class="page-sub">Your account and your training at a glance.</p>
+      </div>
+    </div>
+
+    <div id="profileLayout">
+
+      <div class="profile-side">
+
+      <div id="profileCard">
+        <div id="profileAvatar">R</div>
+        <h3 id="profileTitle"></h3>
+        <p id="profileEmail"></p>
+        <div class="profile-meta">
+          <svg class="ic"><use href="#i-calendar"/></svg>
+          <span>Member since <strong id="profileSince"></strong></span>
+        </div>
+        <button id="profileLogout" class="btn-ghost"><svg class="ic"><use href="#i-logout"/></svg>Logout</button>
+      </div>
+
+        <div class="home-card" id="editProfileCard">
+          <div class="card-head">
+            <h3>Edit profile</h3>
+          </div>
+          <label class="pf-label" for="profileName">Username</label>
+          <input type="text" id="profileName" maxlength="20" placeholder="Choose a new username">
+          <button id="saveName">Save username</button>
+          <p id="profileMsg"></p>
+        </div>
+
+      </div>
+
+      <div class="profile-main">
+
+        <div id="profileStats">
+          <div class="stat">
+            <span class="stat-icon"><svg class="ic"><use href="#i-dumbbell"/></svg></span>
+            <strong id="profileWorkouts">0</strong>
+            <small>Workouts logged</small>
+          </div>
+          <div class="stat">
+            <span class="stat-icon"><svg class="ic"><use href="#i-trend"/></svg></span>
+            <strong id="profileExercises">0</strong>
+            <small>Exercises tracked</small>
+          </div>
+          <div class="stat">
+            <span class="stat-icon"><svg class="ic"><use href="#i-flame"/></svg></span>
+            <strong id="profileStreak">0</strong>
+            <small>Current streak</small>
+          </div>
+          <div class="stat">
+            <span class="stat-icon"><svg class="ic"><use href="#i-trophy"/></svg></span>
+            <strong id="profileLongest">0</strong>
+            <small>Longest streak</small>
+          </div>
+        </div>
+
+        <div class="home-card">
+          <div class="card-head">
+            <h3>Intensity breakdown</h3>
+            <span id="breakdownTotal"></span>
+          </div>
+          <div id="breakdown"></div>
+        </div>
+
+        <div class="home-card">
+          <div class="card-head">
+            <h3>Most trained splits</h3>
+            <span id="splitTotal"></span>
+          </div>
+          <div id="splitBreakdown"></div>
+        </div>
+
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ABOUT (guide for new users: how the system works and how to use it) -->
+  <section id="about" class="page">
+
+    <div class="ab-hero">
+      <h2>How <span>RepCord</span> works</h2>
+      <p>Everything you can do here, explained in plain words. It takes about two minutes to read.</p>
+      <div class="ab-cta-row ab-guest-cta">
+        <button type="button" data-about="signup">Create an account</button>
+        <button type="button" data-about="login" class="btn-ghost">I already have one</button>
+      </div>
+      <div class="ab-cta-row ab-user-cta" hidden>
+        <button type="button" data-about="home">Go to Home</button>
+      </div>
+    </div>
+
+    <h3 class="section-title">The idea in 4 steps</h3>
+    <div class="ab-flow">
+      <div class="feature ab-step">
+        <div class="icon"><svg class="ic"><use href="#i-dumbbell"/></svg></div>
+        <h4>1. Make a split</h4>
+        <p>A split is one training day, like Push Day. Go to Workouts, then Splits, then New split.</p>
+      </div>
+      <div class="feature ab-step">
+        <div class="icon"><svg class="ic"><use href="#i-calendar"/></svg></div>
+        <h4>2. Log your day</h4>
+        <p>Open Your Calendar, click a day, pick the split and how hard it was, then save.</p>
+      </div>
+      <div class="feature ab-step">
+        <div class="icon"><svg class="ic"><use href="#i-trend"/></svg></div>
+        <h4>3. Update your lifts</h4>
+        <p>Go to Workouts, then Progress. Type only the weights or reps that changed.</p>
+      </div>
+      <div class="feature ab-step">
+        <div class="icon"><svg class="ic"><use href="#i-flame"/></svg></div>
+        <h4>4. Watch it grow</h4>
+        <p>Your calendar fills with color, your streak goes up, and your charts show your progress.</p>
+      </div>
+    </div>
+
+    <h3 class="section-title">Your calendar is your scoreboard</h3>
+    <div class="ab-row">
+      <div class="ab-text">
+        <p>Every day is a small square. Train, then color it in. The harder you worked, the brighter the square.</p>
+        <ul class="ab-levels">
+          <li><span class="day pv light"></span><div><strong>Light</strong><small>An easy day. You had plenty left.</small></div></li>
+          <li><span class="day pv moderate"></span><div><strong>Moderate</strong><small>A normal, solid workout.</small></div></li>
+          <li><span class="day pv failure"></span><div><strong>Failure</strong><small>Your hardest days. You pushed until you couldn't do another rep.</small></div></li>
+        </ul>
+        <p>A square with no color is a rest day.</p>
+      </div>
+      <div class="ab-visual">
+        <p class="ab-tag">Try it: click a square</p>
+        <div id="aboutDemo" aria-label="Practice calendar. Click a square to change its color."></div>
+      </div>
+    </div>
+
+    <h3 class="section-title">Make a split for each training day</h3>
+    <div class="ab-row flip">
+      <div class="ab-text">
+        <p>A <strong>split</strong> is just one workout day with its list of exercises, like Push Day or Leg Day.</p>
+        <p>Go to <strong>Workouts</strong>, open the <strong>Splits</strong> tab, and press <strong>New split</strong>. Pick exercises from the library, or type your own.</p>
+        <p>You make a split once and use it again and again. You need at least one split before you can log a workout.</p>
+      </div>
+      <div class="ab-visual">
+        <p class="ab-tag">Example</p>
+        <div class="ab-mock">
+          <div class="ab-mock-head"><strong>Push Day</strong><span>4 exercises</span></div>
+          <div class="ab-mock-chips">
+            <span>Bench Press</span>
+            <span>Incline Bench Press</span>
+            <span>Dumbbell Shoulder Press</span>
+            <span>Tricep Pushdown</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <h3 class="section-title">Track your lifts and watch them climb</h3>
+    <div class="ab-row">
+      <div class="ab-text">
+        <p>After training, open <strong>Workouts</strong> and the <strong>Progress</strong> tab. Pick a split and type only the weights or reps that changed.</p>
+        <p>RepCord remembers your <strong>latest</strong> lift and your <strong>best</strong> (heaviest) lift, and draws a chart so you can see yourself getting stronger.</p>
+        <p>You can use <strong>kg</strong> or <strong>lb</strong>. If you switch, your old numbers are converted for you.</p>
+      </div>
+      <div class="ab-visual">
+        <p class="ab-tag">Example chart</p>
+        <svg class="ab-chart" viewBox="0 0 320 170" role="img" aria-label="Example chart of a lift going up over six weeks">
+          <line class="g" x1="30" y1="25" x2="305" y2="25"/>
+          <line class="g" x1="30" y1="70" x2="305" y2="70"/>
+          <line class="g" x1="30" y1="115" x2="305" y2="115"/>
+          <text x="2" y="29">75</text>
+          <text x="2" y="74">68</text>
+          <text x="2" y="119">60</text>
+          <polygon class="area" points="45,115 95,100 145,106 195,72 245,60 295,25 295,135 45,135"/>
+          <polyline class="ln" points="45,115 95,100 145,106 195,72 245,60 295,25"/>
+          <circle class="pt" cx="45" cy="115" r="4"/>
+          <circle class="pt" cx="95" cy="100" r="4"/>
+          <circle class="pt" cx="145" cy="106" r="4"/>
+          <circle class="pt" cx="195" cy="72" r="4"/>
+          <circle class="pt" cx="245" cy="60" r="4"/>
+          <circle class="pt" cx="295" cy="25" r="4"/>
+          <text x="38" y="155">Wk 1</text>
+          <text x="138" y="155">Wk 3</text>
+          <text x="288" y="155">Wk 6</text>
+        </svg>
+        <p class="ab-caption"><strong>Bench Press:</strong> 60 kg &rarr; 75 kg</p>
+      </div>
+    </div>
+
+    <h3 class="section-title">Keep your streak alive</h3>
+    <div class="ab-row flip">
+      <div class="ab-text">
+        <p>A <strong>streak</strong> is how many days in a row you trained. If you skip a day, the count starts over, so it's a good reason to show up.</p>
+        <p>The calendar page shows your current streak, your longest streak ever, and how many workouts you did this month.</p>
+      </div>
+      <div class="ab-visual ab-chips">
+        <p class="ab-tag">Example numbers</p>
+        <div class="chip"><span class="chip-icon"><svg class="ic"><use href="#i-flame"/></svg></span><div><strong>5</strong><small>Current streak (days)</small></div></div>
+        <div class="chip"><span class="chip-icon"><svg class="ic"><use href="#i-trophy"/></svg></span><div><strong>12</strong><small>Longest streak (days)</small></div></div>
+        <div class="chip"><span class="chip-icon"><svg class="ic"><use href="#i-calendar"/></svg></span><div><strong>9</strong><small>Workouts this month</small></div></div>
+      </div>
+    </div>
+
+    <h3 class="section-title">Everything you can do</h3>
+    <div class="features">
+      <div class="feature">
+        <div class="icon"><svg class="ic"><use href="#i-lock"/></svg></div>
+        <h4>Make an account</h4>
+        <p>Sign up with an email and a password. Log in from any device.</p>
+      </div>
+      <div class="feature">
+        <div class="icon"><svg class="ic"><use href="#i-dumbbell"/></svg></div>
+        <h4>Build your splits</h4>
+        <p>Group exercises into days like Push or Legs. Add your own exercises too.</p>
+      </div>
+      <div class="feature">
+        <div class="icon"><svg class="ic"><use href="#i-calendar"/></svg></div>
+        <h4>Log a workout</h4>
+        <p>Click a day on the calendar, pick a split, and pick how hard it was.</p>
+      </div>
+      <div class="feature">
+        <div class="icon"><svg class="ic"><use href="#i-edit"/></svg></div>
+        <h4>Change or delete a day</h4>
+        <p>Made a mistake? Click the day again to change it or remove it.</p>
+      </div>
+      <div class="feature">
+        <div class="icon"><svg class="ic"><use href="#i-trend"/></svg></div>
+        <h4>Track your lifts</h4>
+        <p>Type your weight and reps. RepCord keeps your latest and your best.</p>
+      </div>
+      <div class="feature">
+        <div class="icon"><svg class="ic"><use href="#i-star"/></svg></div>
+        <h4>Use kg or lb</h4>
+        <p>Switch any time. Your old numbers are converted for you.</p>
+      </div>
+      <div class="feature">
+        <div class="icon"><svg class="ic"><use href="#i-search"/></svg></div>
+        <h4>Search your history</h4>
+        <p>Find old workouts by name, or show only Light, Moderate, or Failure days.</p>
+      </div>
+      <div class="feature">
+        <div class="icon"><svg class="ic"><use href="#i-flame"/></svg></div>
+        <h4>Keep your streak</h4>
+        <p>See how many days in a row you trained, and your longest run ever.</p>
+      </div>
+      <div class="feature">
+        <div class="icon"><svg class="ic"><use href="#i-trophy"/></svg></div>
+        <h4>See your stats</h4>
+        <p>Your profile shows your total workouts, your top lifts, and your most trained splits.</p>
+      </div>
+      <div class="feature">
+        <div class="icon"><svg class="ic"><use href="#i-user"/></svg></div>
+        <h4>Edit your profile</h4>
+        <p>Change your username any time from the profile page.</p>
+      </div>
+      <div class="feature">
+        <div class="icon"><svg class="ic"><use href="#i-palette"/></svg></div>
+        <h4>Make it yours</h4>
+        <p>Pick a theme color and a font that you like.</p>
+      </div>
+      <div class="feature">
+        <div class="icon"><svg class="ic"><use href="#i-globe"/></svg></div>
+        <h4>Use it anywhere</h4>
+        <p>The layout fits phones, tablets, and computers.</p>
+      </div>
+    </div>
+
+    <h3 class="section-title">Common questions</h3>
+    <div class="ab-faq">
+      <details>
+        <summary>Why can't I save a workout?</summary>
+        <p>You need at least one split first. Go to Workouts, open the Splits tab, and make one. Then go back to your calendar.</p>
+      </details>
+      <details>
+        <summary>Can I change a workout after I save it?</summary>
+        <p>Yes. Click that day on the calendar to change the split or how hard it was, or to delete it. You can also delete workouts from Workouts, then History.</p>
+      </details>
+      <details>
+        <summary>Can I use pounds instead of kilograms?</summary>
+        <p>Yes. You choose kg or lb for each exercise. If you switch, your old numbers are converted so your chart stays correct.</p>
+      </details>
+      <details>
+        <summary>Will my workouts show up on my other devices?</summary>
+        <p>Yes. Your workouts are saved to your account, so just log in on any device.</p>
+      </details>
+      <details>
+        <summary>What counts as a streak?</summary>
+        <p>Days in a row with a saved workout. If you skip a full day, your current streak starts over. Your longest streak is always kept.</p>
+      </details>
+    </div>
+
+    <div class="ab-cta-box">
+      <h3>Ready to color in your first square?</h3>
+      <p>It only takes a minute to get started.</p>
+      <div class="ab-cta-row ab-guest-cta">
+        <button type="button" data-about="signup">Create an account</button>
+        <button type="button" data-about="login" class="btn-ghost">Login</button>
+      </div>
+      <div class="ab-cta-row ab-user-cta" hidden>
+        <button type="button" data-about="home">Go to Home</button>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- LANDING PAGE (first page for visitors) -->
+  <section id="landing" class="page active">
+
+    <div class="hero">
+      <div>
+        <h2>Did you train today?<br><span>Color in the square.</span></h2>
+        <p>RepCord is a gym log. Pick the split you trained, say how hard it was, and the day lights up on your calendar. Skip a few days and you'll see the gap.</p>
+      </div>
+
+      <div id="previewBox">
+        <div id="previewGrid"></div>
+        <p class="legend">
+          Sample heatmap:
+          <span class="day pv light"></span>Light
+          <span class="day pv moderate"></span>Moderate
+          <span class="day pv failure"></span>Failure
+        </p>
+      </div>
+    </div>
+
+    <h3 class="section-title" id="features">What's in it</h3>
+    <div class="features">
+      <div class="feature">
+        <div class="icon"><svg class="ic"><use href="#i-calendar"/></svg></div>
+        <h4>Calendar</h4>
+        <p>Click a day, choose the split you trained, and mark it light, moderate, or failure. Harder days get brighter squares.</p>
+      </div>
+      <div class="feature">
+        <div class="icon"><svg class="ic"><use href="#i-trend"/></svg></div>
+        <h4>Lifts</h4>
+        <p>After a session, type in your weight and reps. Each exercise keeps your latest and heaviest numbers, in kg or lb, and draws a chart.</p>
+      </div>
+      <div class="feature">
+        <div class="icon"><svg class="ic"><use href="#i-flame"/></svg></div>
+        <h4>Streaks and history</h4>
+        <p>Your current and longest streak sit on the calendar page. Old workouts are searchable by name and can be filtered by intensity.</p>
+      </div>
+    </div>
+
+    <h3 class="section-title" id="how">Getting started</h3>
+    <div class="steps">
+      <div class="feature">
+        <div class="step-num">1</div>
+        <h4>Sign up</h4>
+        <p>Just an email and a password. Your workouts are saved to your account, so they follow you to any device.</p>
+      </div>
+      <div class="feature">
+        <div class="step-num">2</div>
+        <h4>Set up your splits</h4>
+        <p>Make a split for each day you run, like Push or Legs, and pick the exercises that go in it.</p>
+      </div>
+      <div class="feature">
+        <div class="step-num">3</div>
+        <h4>Log it</h4>
+        <p>Click a day, choose the split, set the intensity. Update your weights from the Workouts page when they change.</p>
+      </div>
+    </div>
+    <div class="ab-link-row">
+      <button type="button" data-about="guide">Read the full guide</button>
+    </div>
+
+    <footer class="footer">
+      <div class="footer-grid">
+
+        <div class="footer-about">
+          <div class="footer-logo">
+            <svg class="footer-mark" viewBox="0 0 24 24" aria-hidden="true">
+              <rect x="2" y="2" width="6" height="6" rx="1.5" fill="#0e4429"/>
+              <rect x="9" y="2" width="6" height="6" rx="1.5" fill="#26a641"/>
+              <rect x="16" y="2" width="6" height="6" rx="1.5" fill="#0e4429"/>
+              <rect x="2" y="9" width="6" height="6" rx="1.5" fill="#26a641"/>
+              <rect x="9" y="9" width="6" height="6" rx="1.5" fill="#39d353"/>
+              <rect x="16" y="9" width="6" height="6" rx="1.5" fill="#26a641"/>
+              <rect x="2" y="16" width="6" height="6" rx="1.5" fill="#39d353"/>
+              <rect x="9" y="16" width="6" height="6" rx="1.5" fill="#0e4429"/>
+              <rect x="16" y="16" width="6" height="6" rx="1.5" fill="#39d353"/>
+            </svg>
+            <span class="footer-brand">RepCord</span>
+          </div>
+          <p>A gym log with a heatmap calendar. Made for school.</p>
+
+          <!-- SOCIAL MEDIA & COMMUNITY -->
+          <div class="footer-social">
+            <!-- GITHUB: put your repository link in href and delete the comment marks around this icon
+            <a class="icon-btn" href="https://github.com/YOUR-USERNAME/repcord" target="_blank" rel="noopener" aria-label="GitHub repository">
+              <svg viewBox="0 0 16 16" width="18" height="18" fill="currentColor" aria-hidden="true">
+                <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/>
+              </svg>
+            </a>
+            -->
+            <a class="icon-btn" href="https://www.facebook.com/ronjacob020" target="_blank" rel="noopener" aria-label="Facebook">f</a>
+          </div>
+        </div>
+
+        <div>
+          <h5>Explore</h5>
+          <ul class="footer-list">
+            <li><a href="#features"><span class="fi"><svg class="ic"><use href="#i-star"/></svg></span>Features</a></li>
+            <li><a href="#how"><span class="fi"><svg class="ic"><use href="#i-compass"/></svg></span>How it works</a></li>
+            <li><a href="#" id="footAbout"><span class="fi"><svg class="ic"><use href="#i-book"/></svg></span>About / User guide</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <h5>Built with</h5>
+          <ul class="footer-list">
+            <li><span class="fi"><svg class="ic"><use href="#i-globe"/></svg></span>HTML, CSS, JavaScript</li>
+            <li><span class="fi"><svg class="ic"><use href="#i-lock"/></svg></span>Firebase Authentication</li>
+            <li><span class="fi"><svg class="ic"><use href="#i-cloud"/></svg></span>Cloud Firestore</li>
+          </ul>
+        </div>
+
+        <div>
+          <h5>Project</h5>
+          <ul class="footer-list">
+            <li><span class="fi"><svg class="ic"><use href="#i-cap"/></svg></span>Integrative Programming Technologies</li>
+            <li><span class="fi"><svg class="ic"><use href="#i-book"/></svg></span>Individual Final Project</li>
+            <li><span class="fi"><svg class="ic"><use href="#i-user"/></svg></span>Created by Ron Jacob Perez</li>
+            <!-- CONTACT DETAILS -->
+            <li><span class="fi"><svg class="ic"><use href="#i-mail"/></svg></span><a href="mailto:ronjacobperez8@gmail.com">ronjacobperez8@gmail.com</a></li>
+          </ul>
+        </div>
+
+      </div>
+
+      <div class="footer-bottom">
+        <span>© 2026 RepCord. Made for a school project.</span>
+        <a href="#" class="to-top"><svg class="ic"><use href="#i-up"/></svg>Back to top</a>
+      </div>
+    </footer>
+
+  </section>
+
+  <!-- LOGIN AND REGISTER PAGE -->
+  <section id="auth" class="page">
+    <div class="auth-wrap">
+
+      <aside class="auth-side">
+        <h2>Your grid is <span>waiting.</span></h2>
+        <p>Log every session, keep your streak alive, and watch your progress fill in.</p>
+        <ul class="auth-perks">
+          <li><span class="fi"><svg class="ic"><use href="#i-calendar"/></svg></span>Heatmap calendar for every workout</li>
+          <li><span class="fi"><svg class="ic"><use href="#i-trend"/></svg></span>Charts that track your lifts</li>
+          <li><span class="fi"><svg class="ic"><use href="#i-flame"/></svg></span>Streaks that keep you consistent</li>
+        </ul>
+        <div id="authGrid"></div>
+      </aside>
+
+      <div id="authCard">
+        <h3 id="authTitle">Welcome back</h3>
+        <p class="auth-sub">Track every rep. Keep your streak alive.</p>
+
+        <div id="authForm">
+          <input type="text" id="authUsername" placeholder="Username" maxlength="20" hidden>
+          <p id="usernameHint" hidden>Username: 3 to 20 characters, using letters, numbers, spaces, or underscores.</p>
+          <input type="email" id="authEmail" placeholder="Email">
+          <div class="pw-wrap">
+            <input type="password" id="authPassword" placeholder="Password">
+            <button type="button" id="togglePw" class="pw-toggle" aria-label="Show or hide password">
+              <svg class="eye-open" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/>
+                <circle cx="12" cy="12" r="3" fill="currentColor"/>
+              </svg>
+              <svg class="eye-closed" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M17.94 17.94A10.94 10.94 0 0 1 12 19c-7 0-11-7-11-7a19.77 19.77 0 0 1 5.06-5.94"/>
+                <path d="M9.9 4.24A10.94 10.94 0 0 1 12 5c7 0 11 7 11 7a19.86 19.86 0 0 1-3.17 4.19"/>
+                <path d="M14.12 14.12a3 3 0 1 1-4.24-4.24"/>
+                <line x1="1" y1="1" x2="23" y2="23"/>
+              </svg>
+            </button>
+          </div>
+          <p id="passwordHint" hidden>Use 7+ characters with a capital letter, a number, and a special character (like !@#$%).</p>
+          <button id="loginBtn">Login</button>
+          <button id="registerBtn" hidden>Register</button>
+        </div>
+
+        <p id="authError"></p>
+        <p class="switch-text">
+          <span id="switchText">New to RepCord?</span>
+          <button id="switchMode" class="link-btn">Create an account</button>
+        </p>
+      </div>
+
+    </div>
+  </section>
+
+  <div id="confirmModal" class="modal confirm-modal" hidden>
+    <div class="confirm-card" role="alertdialog" aria-modal="true" aria-labelledby="confirmTitle" aria-describedby="confirmText">
+      <div class="confirm-icon"><svg class="ic"><use href="#i-trash"/></svg></div>
+      <h3 id="confirmTitle">Delete this?</h3>
+      <p id="confirmText"></p>
+      <div class="confirm-actions">
+        <button type="button" id="confirmCancel">Cancel</button>
+        <button type="button" id="confirmOk">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast"></div>
+
+  <script type="module" src="script.js"></script>
+</body>
+</html>
