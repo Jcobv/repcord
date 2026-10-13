@@ -58,6 +58,25 @@
     return 0.299 * c.r + 0.587 * c.g + 0.114 * c.b > 150;
   }
 
+  // Whole-page colors for a custom color: the background, cards, lines and text all
+  // take the hue of the chosen color. Grey or white picks give neutral grey surfaces.
+  var SURFACE_VARS = ["--bg", "--card", "--line", "--text", "--muted", "--nav-bg"];
+
+  function surfaceColors(hex) {
+    var hsv = rgbToHsv(hexToRgb(hex));
+    var h = Math.round(hsv.h);
+    var k = Math.min(1, hsv.s / 0.5); // how colorful the surfaces get (0 = grey)
+    function hsl(s, l) { return "hsl(" + h + ", " + Math.round(s * k) + "%, " + l + "%)"; }
+    return {
+      "--bg": hsl(32, 5),
+      "--card": hsl(28, 9),
+      "--line": hsl(26, 17),
+      "--text": hsl(40, 94),
+      "--muted": hsl(18, 62),
+      "--nav-bg": "hsla(" + h + ", " + Math.round(28 * k) + "%, 9%, 0.85)"
+    };
+  }
+
   function save() {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
@@ -71,16 +90,26 @@
   // The soft glow in the page background is a huge gradient, and the calendar has hundreds of
   // squares, so repainting them on every drag step is slow. They read their own colors
   // (--glow-rgb and --glow-accent) so they can trail behind a little while the user drags.
-  function syncGlow() {
+  // skipSurfaces = true while dragging: the page colors wait until the user pauses or lets go
+  function syncGlow(skipSurfaces) {
     clearTimeout(glowTimer);
     glowTimer = 0;
     if (state.theme === "custom") {
       var c = hexToRgb(state.color);
       root.style.setProperty("--glow-rgb", c.r + ", " + c.g + ", " + c.b);
       root.style.setProperty("--glow-accent", state.color);
+      if (!skipSurfaces) {
+        var surfaces = surfaceColors(state.color);
+        SURFACE_VARS.forEach(function (name) {
+          root.style.setProperty(name, surfaces[name]);
+        });
+      }
     } else {
       root.style.removeProperty("--glow-rgb");
       root.style.removeProperty("--glow-accent");
+      SURFACE_VARS.forEach(function (name) {
+        root.style.removeProperty(name);
+      });
     }
   }
 
@@ -104,7 +133,7 @@
     }
 
     if (live) {
-      if (!glowTimer) glowTimer = setTimeout(syncGlow, 600);
+      if (!glowTimer) glowTimer = setTimeout(function () { syncGlow(true); }, 600);
     } else {
       syncGlow();
     }
@@ -172,21 +201,46 @@
     }
 
     // ----- many drag events can arrive per frame: do the real work once per frame -----
-    var frame = 0, saveTimer = 0, liveTimer = 0;
+    var frame = 0, saveTimer = 0, liveTimer = 0, previewing = false;
+    var PREVIEW_VARS = ["--accent", "--accent-rgb", "--on-accent"].concat(SURFACE_VARS);
+
+    // While dragging, only the small color panel changes (cheap). The whole page,
+    // with hundreds of calendar squares, is repainted once when the user lets go.
+    function previewOnPanel() {
+      previewing = true;
+      var c = hexToRgb(state.color);
+      var s = surfaceColors(state.color);
+      panel.style.setProperty("--accent", state.color);
+      panel.style.setProperty("--accent-rgb", c.r + ", " + c.g + ", " + c.b);
+      panel.style.setProperty("--on-accent", isLight(c) ? "#0b0d11" : "#ffffff");
+      SURFACE_VARS.forEach(function (name) {
+        panel.style.setProperty(name, s[name]);
+      });
+    }
+
+    // paints the chosen color on the whole page, once
+    function commit() {
+      clearTimeout(liveTimer);
+      liveTimer = 0;
+      if (!previewing) return;
+      previewing = false;
+      root.classList.add("theme-live");   // no transitions or blur during this one repaint
+      apply();
+      PREVIEW_VARS.forEach(function (name) {
+        panel.style.removeProperty(name);
+      });
+      requestAnimationFrame(function () { root.classList.remove("theme-live"); });
+    }
 
     function queue() {
       if (frame) return;
       frame = requestAnimationFrame(function () {
         frame = 0;
-        // while dragging, switch off transitions and the blur so every frame stays cheap
-        root.classList.add("theme-live");
-        apply(true);
+        previewOnPanel();
         renderControls();
+        // dragging stopped for a moment: show the color on the whole page
         clearTimeout(liveTimer);
-        liveTimer = setTimeout(function () {
-          syncGlow();                          // dragging stopped: bring the glow up to date
-          root.classList.remove("theme-live");
-        }, 220);
+        liveTimer = setTimeout(commit, 450);
         // write to storage once the user pauses, not on every move
         clearTimeout(saveTimer);
         saveTimer = setTimeout(save, 350);
@@ -247,7 +301,10 @@
       if (dragging) pick(e);
     });
 
-    function stopDrag() { dragging = false; }
+    function stopDrag() {
+      dragging = false;
+      commit();
+    }
     wheel.addEventListener("pointerup", stopDrag);
     wheel.addEventListener("pointercancel", stopDrag);
 
@@ -256,6 +313,8 @@
       hsv.v = brightness.value / 100;
       setFromHsv();
     });
+
+    brightness.addEventListener("change", commit);
 
     // ----- type a hex code -----
     hexInput.addEventListener("input", function () {

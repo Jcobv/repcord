@@ -20,6 +20,17 @@ const lockedButtons = document.querySelectorAll(".needs-login");
 const guestOnlyButtons = document.querySelectorAll(".guest-only");
 const pages = document.querySelectorAll(".page");
 
+// remembers which page and tab you were on, so a reload puts you back there
+const APP_PAGES = ["home", "calendar", "workouts", "profile"];
+
+function remember(key, value) {
+  try { sessionStorage.setItem(key, value); } catch (e) {}
+}
+
+function recall(key) {
+  try { return sessionStorage.getItem(key); } catch (e) { return null; }
+}
+
 function showPage(name) {
   pages.forEach(page => {
     page.classList.toggle("active", page.id === name);
@@ -27,6 +38,7 @@ function showPage(name) {
   buttons.forEach(button => {
     button.classList.toggle("active", button.dataset.page === name);
   });
+  if (APP_PAGES.includes(name)) remember("repcord-page", name);
   if (name === "about") window.scrollTo(0, 0);
 }
 
@@ -94,6 +106,7 @@ tabs.forEach(tab => {
   tab.addEventListener("click", () => {
     tabs.forEach(t => t.classList.toggle("active", t === tab));
     panels.forEach(p => p.classList.toggle("active", p.id === tab.dataset.tab));
+    remember("repcord-tab", tab.dataset.tab);
   });
 });
 
@@ -185,45 +198,55 @@ function buildCalendar() {
   monthRow.innerHTML = "";
   document.getElementById("calendarYear").textContent = year;
 
-  const first = new Date(year, 0, 1);
-  const last = new Date(year, 11, 31);
   const todayText = formatDate(new Date());
-  const offset = first.getDay();
-    // how many week columns the year needs, so the grid always fits its card
-  const totalDays = Math.round((last - first) / 86400000) + 1;
-  const weekColumns = Math.ceil((offset + totalDays) / 7);
-  document.getElementById("calendarInner").style.setProperty("--cols", weekColumns);
+  const tracks = [];     // the width of every column (the gaps between months are narrow ones)
+  let column = 1;        // the next free column (grid columns count from 1)
+  let weekColumns = 0;
 
-  // month names: each one sits above the week column where the month starts
   for (let m = 0; m < 12; m++) {
-    const firstOfMonth = new Date(year, m, 1);
-    const dayOfYear = Math.round((firstOfMonth - first) / 86400000);
-    const column = Math.floor((dayOfYear + offset) / 7);
+    const daysInMonth = new Date(year, m + 1, 0).getDate();
+    const startRow = new Date(year, m, 1).getDay();       // 0 = Sunday ... 6 = Saturday
+    const weeks = Math.ceil((startRow + daysInMonth) / 7);
 
+    // the month name sits above its own block of columns
     const label = document.createElement("span");
     label.textContent = monthNames[m];
-    label.style.gridColumnStart = column + 1;
+    label.style.gridColumn = column + " / span " + weeks;
     monthRow.appendChild(label);
-  }
 
-  for (let i = 0; i < offset; i++) {
-    const empty = document.createElement("div");
-    empty.className = "day empty";
-    grid.appendChild(empty);
-  }
+    // every day gets its own column and row, so each month stays together as one block
+    for (let day = 1; day <= daysInMonth; day++) {
+      const slot = startRow + day - 1;
+      const date = formatDate(new Date(year, m, day));
 
-  for (let d = new Date(first); d <= last; d.setDate(d.getDate() + 1)) {
-    const box = document.createElement("div");
-    box.className = "day";
-    box.dataset.date = formatDate(d);
-    box.title = formatDate(d);
+      const box = document.createElement("div");
+      box.className = "day";
+      box.dataset.date = date;
+      box.title = date;
+      box.style.gridColumn = column + Math.floor(slot / 7);
+      box.style.gridRow = (slot % 7) + 1;
 
-    if (box.dataset.date === todayText) {
-      box.classList.add("today");
+      if (date === todayText) {
+        box.classList.add("today");
+      }
+
+      grid.appendChild(box);
     }
 
-    grid.appendChild(box);
+    for (let w = 0; w < weeks; w++) tracks.push("minmax(0, 1fr)");
+    column += weeks;
+    weekColumns += weeks;
+
+    // a narrow empty column between one month and the next
+    if (m < 11) {
+      tracks.push("var(--month-gap)");
+      column += 1;
+    }
   }
+
+  grid.style.gridTemplateColumns = tracks.join(" ");
+  monthRow.style.gridTemplateColumns = tracks.join(" ");
+  document.getElementById("calendarInner").style.setProperty("--cols", weekColumns);
 }
 
 buildCalendar();
@@ -1914,10 +1937,17 @@ onAuthStateChanged(auth, async (user) => {
     // after logging in or registering, go to Home
     const activePage = document.querySelector(".page.active").id;
     if (activePage === "auth" || activePage === "landing" || activePage === "about") {
-      showPage("home");
+      const savedPage = recall("repcord-page");
+      showPage(APP_PAGES.includes(savedPage) ? savedPage : "home");
+
+      // put the Workouts tab back too (History, Progress or Splits)
+      const savedTab = recall("repcord-tab");
+      const tabButton = document.querySelector('.tab[data-tab="' + savedTab + '"]');
+      if (tabButton) tabButton.click();
     }
   } else {
     logBox.hidden = true;
+    try { sessionStorage.removeItem("repcord-page"); sessionStorage.removeItem("repcord-tab"); } catch (e) {}
     showPage("landing");
   }
 

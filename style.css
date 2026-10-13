@@ -2634,3 +2634,13 @@ html.returning #landing { display: none !important; }
 
 /* returning, logged-in visitors never see the About button flash before Firebase answers */
 html.returning .guest-only { display: none !important; }
+
+/* ---------- calendar: a gap between the months ---------- */
+#calendarInner {
+  --month-gap: 12px;     /* make this bigger or smaller to change the space between months */
+  --gap: 3px;
+  min-width: 1000px;     /* below this width the calendar scrolls sideways instead of shrinking */
+}
+
+/* ---------- calendar: month names centered over their block ---------- */
+#monthRow span { text-align: center; }
