@@ -148,12 +148,35 @@ The app uses JavaScript modules, so it must be served over HTTP. Opening `index.
 
 ## Screenshots
 
-> Add a screenshot of each page here once taken, for example:
->
-> ```markdown
-> ### Landing Page
-> ![Landing page](screenshots/landing.png)
-> ```
+### Landing Page
+![Landing page, top](screenshots/landing-1.png)
+![Landing page, bottom](screenshots/landing-2.png)
+
+### About / User Guide
+![About page, part 1](screenshots/about-1.png)
+![About page, part 2](screenshots/about-2.png)
+
+### Sign Up
+![Sign up](screenshots/sign-up.png)
+
+### Login
+![Login](screenshots/login.png)
+
+### Home
+![Home dashboard](screenshots/home.png)
+
+### Your Calendar
+![Heatmap calendar](screenshots/calendar.png)
+
+### Workouts
+![Workouts, screenshot 1](screenshots/workouts-1.png)
+![Workouts, screenshot 2](screenshots/workouts-2.png)
+![Workouts, screenshot 3](screenshots/workouts-3.png)
+![Workouts, screenshot 4](screenshots/workouts-4.png)
+![Workouts, screenshot 5](screenshots/workouts-5.png)
+
+### My Profile
+![Profile](screenshots/profile.png)
 
 ## Author
 
